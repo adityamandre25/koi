@@ -152,8 +152,8 @@ fn render_day(snapshot_path: &Path, koi_body: KoiBody) -> Result<RenderedDay, St
     let still_frame = render_koi(&koi_development, koi_body);
     let gif_bytes =
         encode_gif(&swim_frames).map_err(|encoding_error| encoding_error.to_string())?;
-    let png_bytes = encode_png(&still_frame)
-        .map_err(|encoding_error| encoding_error.to_string())?;
+    let png_bytes =
+        encode_png(&still_frame).map_err(|encoding_error| encoding_error.to_string())?;
     let svg_bytes = encode_svg(&still_frame).into_bytes();
     let caption = format!(
         "{} for {}, {} body ({} contributions in {})",

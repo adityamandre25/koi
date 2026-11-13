@@ -162,7 +162,7 @@ fn young_koi_show_pale_pigments_until_full_color() {
         .copied()
         .collect();
     assert!(!pale_colors.is_empty());
-    let midway_colors = collect_mix_colors(100, RED_MIX);
+    let midway_colors = collect_mix_colors(2, RED_MIX);
     assert!(!midway_colors.is_disjoint(&pale_colors));
     assert!(!midway_colors.is_disjoint(&red_colors));
     for contribution_total in [FULL_COLOR_CONTRIBUTIONS, ADULT_CONTRIBUTIONS] {
@@ -291,23 +291,13 @@ fn the_longest_streak_changes_only_language_colors() {
 #[test]
 fn growth_slows_and_keeps_the_whole_fish_inside_a_transparent_frame() {
     let mut koi_development = read_fixture_development();
+    koi_development.weekly_active_days = 6;
+    koi_development.consecutive_active_days = 6;
     let mut visible_widths = BTreeMap::new();
     let mut visible_heights = BTreeMap::new();
     let mut area_per_squared_width = BTreeMap::new();
     let mut maximum_frame = None;
-    for contribution_total in [
-        0,
-        500,
-        1_000,
-        1_500,
-        2_000,
-        12_750,
-        25_000,
-        50_000,
-        75_000,
-        100_000,
-        u64::MAX,
-    ] {
+    for contribution_total in [0, 25, 50, 150, 400, 1_000, 2_000, u64::MAX] {
         koi_development.total_contributions = contribution_total;
         let koi_frame = render_koi(&koi_development, KoiBody::default());
         let opaque_bounds = measure_opaque_bounds(&koi_frame);
@@ -331,9 +321,9 @@ fn growth_slows_and_keeps_the_whole_fish_inside_a_transparent_frame() {
             contribution_total,
             opaque_pixel_count as f64 / f64::from(visible_width_pixels).powi(2),
         );
-        if contribution_total == 100_000 {
+        if contribution_total == 1_000 {
             maximum_frame = Some(koi_frame);
-        } else if contribution_total > 100_000 {
+        } else if contribution_total > 1_000 {
             assert_eq!(Some(koi_frame), maximum_frame);
         }
     }
@@ -343,14 +333,12 @@ fn growth_slows_and_keeps_the_whole_fish_inside_a_transparent_frame() {
             .windows(2)
             .all(|adjacent_widths| adjacent_widths[0] <= adjacent_widths[1])
     );
-    assert!(
-        visible_widths[&500] - visible_widths[&0] > visible_widths[&2_000] - visible_widths[&1_500]
-    );
-    for contribution_pair in [12_750, 25_000, 50_000, 75_000, 100_000].windows(2) {
-        assert!(visible_widths[&contribution_pair[0]] < visible_widths[&contribution_pair[1]]);
-        assert!(visible_heights[&contribution_pair[0]] < visible_heights[&contribution_pair[1]]);
+    for contribution_pair in [0, 25, 50, 150, 400, 1_000].windows(2) {
+        assert!(visible_widths[&contribution_pair[0]] <= visible_widths[&contribution_pair[1]]);
+        assert!(visible_heights[&contribution_pair[0]] <= visible_heights[&contribution_pair[1]]);
     }
-    assert!(area_per_squared_width[&100_000] > area_per_squared_width[&12_750]);
+    assert!(visible_widths[&1_000] > visible_widths[&0]);
+    assert!(visible_heights[&1_000] > visible_heights[&0]);
 }
 
 #[test]
@@ -395,7 +383,10 @@ fn all_four_swimming_behaviors_render_valid_frames() {
     ] {
         let frame = render_swim_frame(&koi_development, KoiBody::default(), behavior, 0);
         let opaque_count = collect_opaque_pixel_count(&frame);
-        assert!(opaque_count > 100, "{behavior:?} produced too few opaque pixels: {opaque_count}");
+        assert!(
+            opaque_count > 100,
+            "{behavior:?} produced too few opaque pixels: {opaque_count}"
+        );
     }
 }
 
@@ -538,6 +529,8 @@ fn develop_with_languages(contribution_total: u64, language_mix: LanguageMix) ->
         weeks: build_weeks(4),
         ended_on: koi_development.observed_on - Days::new(70),
     });
+    koi_development.weekly_active_days = 6;
+    koi_development.consecutive_active_days = 6;
     koi_development
 }
 

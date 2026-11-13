@@ -9,18 +9,46 @@ const POSE_VALUES: [PoseValue; 15] = [
     ("lap angle", read_lap_angle, true),
     ("wave phase", |pose| pose.wave_phase_radians, true),
     ("wave strength", |pose| pose.wave_strength, false),
-    ("left tail lobe", |pose| pose.tail_lobe_bends_radians[0], false),
-    ("right tail lobe", |pose| pose.tail_lobe_bends_radians[1], false),
+    (
+        "left tail lobe",
+        |pose| pose.tail_lobe_bends_radians[0],
+        false,
+    ),
+    (
+        "right tail lobe",
+        |pose| pose.tail_lobe_bends_radians[1],
+        false,
+    ),
     ("tail spread", |pose| pose.tail_spread_radians, false),
-    ("left side fin", |pose| pose.side_fin_openings_radians[0], false),
-    ("right side fin", |pose| pose.side_fin_openings_radians[1], false),
-    ("left side fin bend", |pose| pose.side_fin_bends_radians[0], false),
-    ("right side fin bend", |pose| pose.side_fin_bends_radians[1], false),
+    (
+        "left side fin",
+        |pose| pose.side_fin_openings_radians[0],
+        false,
+    ),
+    (
+        "right side fin",
+        |pose| pose.side_fin_openings_radians[1],
+        false,
+    ),
+    (
+        "left side fin bend",
+        |pose| pose.side_fin_bends_radians[0],
+        false,
+    ),
+    (
+        "right side fin bend",
+        |pose| pose.side_fin_bends_radians[1],
+        false,
+    ),
     ("pelvic fins", |pose| pose.pelvic_fin_opening_radians, false),
     ("whiskers", |pose| pose.whisker_sway_radians, false),
     ("depth", |pose| pose.depth, false),
     ("mouth opening", |pose| pose.mouth_opening, false),
-    ("side fin flare", |pose| pose.side_fin_openings_radians[1] - pose.side_fin_openings_radians[0], false),
+    (
+        "side fin flare",
+        |pose| pose.side_fin_openings_radians[1] - pose.side_fin_openings_radians[0],
+        false,
+    ),
 ];
 
 #[test]
@@ -49,7 +77,9 @@ fn every_pose_value_flows_across_the_loop_boundary() {
         Behavior::FastSwimming,
     ] {
         let count = frame_count(behavior);
-        let poses: Vec<SwimPose> = (0..=count).map(|i| calculate_swim_pose(behavior, i)).collect();
+        let poses: Vec<SwimPose> = (0..=count)
+            .map(|i| calculate_swim_pose(behavior, i))
+            .collect();
 
         for (name, read_val, is_angle) in POSE_VALUES {
             for window in poses.windows(2) {
@@ -71,8 +101,14 @@ fn fast_swimming_has_stronger_wave_strength_than_gliding() {
     let glide_poses = collect_loop(Behavior::PeacefulGliding);
     let fast_poses = collect_loop(Behavior::FastSwimming);
 
-    let max_glide_wave: f64 = glide_poses.iter().map(|p| p.wave_strength).fold(0.0, f64::max);
-    let max_fast_wave: f64 = fast_poses.iter().map(|p| p.wave_strength).fold(0.0, f64::max);
+    let max_glide_wave: f64 = glide_poses
+        .iter()
+        .map(|p| p.wave_strength)
+        .fold(0.0, f64::max);
+    let max_fast_wave: f64 = fast_poses
+        .iter()
+        .map(|p| p.wave_strength)
+        .fold(0.0, f64::max);
 
     assert!(
         max_fast_wave > max_glide_wave,

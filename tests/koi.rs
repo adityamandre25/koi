@@ -310,8 +310,8 @@ fn recent_activity_counts_quiet_days_the_last_week_and_complete_weeks() {
 #[test]
 fn lifetime_growth_milestones_and_smooth_logarithmic_interpolation() {
     use git_koi::koi::{
-        calculate_growth_fraction, COLOR_SATURATION_MILESTONE, JUVENILE_TO_ADULT_MILESTONE,
-        DEVELOPED_FINS_MILESTONE, MATURE_SHOW_MILESTONE, LEGENDARY_MILESTONE,
+        COLOR_SATURATION_MILESTONE, DEVELOPED_FINS_MILESTONE, JUVENILE_TO_ADULT_MILESTONE,
+        LEGENDARY_MILESTONE, MATURE_SHOW_MILESTONE, calculate_growth_fraction,
     };
 
     assert_eq!(calculate_growth_fraction(0), 0.0);
@@ -326,7 +326,10 @@ fn lifetime_growth_milestones_and_smooth_logarithmic_interpolation() {
     let mut prev_growth = 0.0;
     for c in [1, 10, 25, 35, 50, 100, 150, 250, 400, 700, 1000, 2000] {
         let g = calculate_growth_fraction(c);
-        assert!(g >= prev_growth, "Growth must never decrease: at {c}, {g} < {prev_growth}");
+        assert!(
+            g >= prev_growth,
+            "Growth must never decrease: at {c}, {g} < {prev_growth}"
+        );
         prev_growth = g;
     }
 }
@@ -395,7 +398,9 @@ fn build_snapshot_with_start_date(start_date_str: &str, daily_counts: &[u32]) ->
         .iter()
         .enumerate()
         .map(|(offset, &count)| ContributionDay {
-            date: start_date.checked_add_days(Days::new(offset as u64)).unwrap(),
+            date: start_date
+                .checked_add_days(Days::new(offset as u64))
+                .unwrap(),
             contribution_count: count,
         })
         .collect();

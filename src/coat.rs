@@ -373,7 +373,9 @@ impl KoiCoat {
             patch_biases: fit_patch_biases(&pigment_shares, identity_seed, &body_samples),
             spot_threshold: find_spot_threshold(&pigment_shares, identity_seed, &body_samples),
             pigment_shares,
-            color_fraction: calculate_color_saturation_progress(koi_development.total_contributions),
+            color_fraction: calculate_color_saturation_progress(
+                koi_development.total_contributions,
+            ),
             streak_marks: calculate_streak_marks(koi_development),
         }
     }
@@ -409,7 +411,9 @@ impl KoiCoat {
             }
         };
 
-        let Some((pigment, score_margin)) = self.select_body_pigment(along_fraction, lateral_fraction) else {
+        let Some((pigment, score_margin)) =
+            self.select_body_pigment(along_fraction, lateral_fraction)
+        else {
             return plain_ground();
         };
 

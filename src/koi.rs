@@ -180,34 +180,39 @@ pub fn log_interpolate(value: u64, start: u64, end: u64) -> f64 {
 /// - 50..=150: broader and longer body, developed fins (0.40 -> 0.65)
 /// - 150..=400: mature show koi with flowing veil-tail fins (0.65 -> 0.85)
 /// - 400..=1,000: legendary maximum development (0.85 -> 1.00)
+///
 /// Totals above 1,000 keep the legendary maximum. Growth never decreases due to inactivity.
 pub fn calculate_growth_fraction(total_contributions: u64) -> f64 {
     if total_contributions <= COLOR_SATURATION_MILESTONE {
         0.20 * log_interpolate(total_contributions, 0, COLOR_SATURATION_MILESTONE)
     } else if total_contributions <= JUVENILE_TO_ADULT_MILESTONE {
-        0.20 + 0.20 * log_interpolate(
-            total_contributions,
-            COLOR_SATURATION_MILESTONE,
-            JUVENILE_TO_ADULT_MILESTONE,
-        )
+        0.20 + 0.20
+            * log_interpolate(
+                total_contributions,
+                COLOR_SATURATION_MILESTONE,
+                JUVENILE_TO_ADULT_MILESTONE,
+            )
     } else if total_contributions <= DEVELOPED_FINS_MILESTONE {
-        0.40 + 0.25 * log_interpolate(
-            total_contributions,
-            JUVENILE_TO_ADULT_MILESTONE,
-            DEVELOPED_FINS_MILESTONE,
-        )
+        0.40 + 0.25
+            * log_interpolate(
+                total_contributions,
+                JUVENILE_TO_ADULT_MILESTONE,
+                DEVELOPED_FINS_MILESTONE,
+            )
     } else if total_contributions <= MATURE_SHOW_MILESTONE {
-        0.65 + 0.20 * log_interpolate(
-            total_contributions,
-            DEVELOPED_FINS_MILESTONE,
-            MATURE_SHOW_MILESTONE,
-        )
+        0.65 + 0.20
+            * log_interpolate(
+                total_contributions,
+                DEVELOPED_FINS_MILESTONE,
+                MATURE_SHOW_MILESTONE,
+            )
     } else if total_contributions <= LEGENDARY_MILESTONE {
-        0.85 + 0.15 * log_interpolate(
-            total_contributions,
-            MATURE_SHOW_MILESTONE,
-            LEGENDARY_MILESTONE,
-        )
+        0.85 + 0.15
+            * log_interpolate(
+                total_contributions,
+                MATURE_SHOW_MILESTONE,
+                LEGENDARY_MILESTONE,
+            )
     } else {
         1.0
     }
@@ -264,7 +269,9 @@ pub fn calculate_streak_active_days(
     // If observed_on is Sunday, Sunday is completely ignored: it neither increments nor breaks the streak.
     // Evaluate the streak as of the latest Saturday.
     if date.weekday() == Weekday::Sun {
-        let Some(prev) = date.pred_opt() else { return 0; };
+        let Some(prev) = date.pred_opt() else {
+            return 0;
+        };
         date = prev;
     }
 
@@ -279,7 +286,9 @@ pub fn calculate_streak_active_days(
             break;
         }
 
-        let Some(prev_date) = date.pred_opt() else { break; };
+        let Some(prev_date) = date.pred_opt() else {
+            break;
+        };
         date = prev_date;
     }
 

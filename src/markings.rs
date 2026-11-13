@@ -50,6 +50,7 @@ pub fn calculate_marking_visibility(weekly_active_days: u8) -> f64 {
 /// - 2: clearer markings (0.50)
 /// - 4: sharp markings (0.80)
 /// - 6: maximum detail (1.00)
+///
 /// Independent of weekly marking visibility.
 pub fn calculate_marking_sharpness(consecutive_active_days: u8) -> f64 {
     match consecutive_active_days {

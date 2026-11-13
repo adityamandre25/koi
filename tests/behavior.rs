@@ -1,6 +1,6 @@
-use chrono::{Days, NaiveDate};
+use chrono::{Datelike, Days, NaiveDate};
 use git_koi::behavior::{Behavior, select_behavior};
-use git_koi::history::{AccountSnapshot, ContributionDay, ContributionHistory};
+use git_koi::history::{AccountSnapshot, ContributionDay};
 use git_koi::koi::{KoiDevelopment, derive_koi_development};
 
 #[test]
@@ -13,7 +13,11 @@ fn yesterday_zero_contributions_selects_peaceful_gliding() {
 fn yesterday_one_to_three_contributions_selects_gentle_swimming() {
     for count in 1..=3 {
         let koi = develop_with_yesterday_contributions(count);
-        assert_eq!(select_behavior(&koi), Behavior::GentleSwimming, "{count} contributions");
+        assert_eq!(
+            select_behavior(&koi),
+            Behavior::GentleSwimming,
+            "{count} contributions"
+        );
     }
 }
 
@@ -21,7 +25,11 @@ fn yesterday_one_to_three_contributions_selects_gentle_swimming() {
 fn yesterday_four_to_ten_contributions_selects_energetic_swimming() {
     for count in [4, 5, 8, 10] {
         let koi = develop_with_yesterday_contributions(count);
-        assert_eq!(select_behavior(&koi), Behavior::EnergeticSwimming, "{count} contributions");
+        assert_eq!(
+            select_behavior(&koi),
+            Behavior::EnergeticSwimming,
+            "{count} contributions"
+        );
     }
 }
 
@@ -29,7 +37,11 @@ fn yesterday_four_to_ten_contributions_selects_energetic_swimming() {
 fn yesterday_eleven_plus_contributions_selects_fast_swimming() {
     for count in [11, 15, 50, 200] {
         let koi = develop_with_yesterday_contributions(count);
-        assert_eq!(select_behavior(&koi), Behavior::FastSwimming, "{count} contributions");
+        assert_eq!(
+            select_behavior(&koi),
+            Behavior::FastSwimming,
+            "{count} contributions"
+        );
     }
 }
 
@@ -47,7 +59,11 @@ fn sunday_yesterday_activity_is_included() {
         (14, Behavior::FastSwimming),
     ] {
         let koi = develop_with_date_and_yesterday(sunday, count);
-        assert_eq!(select_behavior(&koi), expected, "Sunday with {count} contributions");
+        assert_eq!(
+            select_behavior(&koi),
+            expected,
+            "Sunday with {count} contributions"
+        );
     }
 }
 
@@ -86,7 +102,10 @@ fn develop_with_date_and_yesterday(observed_on: NaiveDate, yesterday_count: u32)
     derive_koi(&days, observed_on)
 }
 
-fn develop_with_total_and_yesterday(total_contributions: u64, yesterday_count: u32) -> KoiDevelopment {
+fn develop_with_total_and_yesterday(
+    total_contributions: u64,
+    yesterday_count: u32,
+) -> KoiDevelopment {
     let observed_on = NaiveDate::from_ymd_opt(2026, 11, 12).unwrap();
     let earlier_total = total_contributions.saturating_sub(u64::from(yesterday_count));
     let start_date = observed_on.checked_sub_days(Days::new(10)).unwrap();
@@ -107,28 +126,26 @@ fn develop_with_total_and_yesterday(total_contributions: u64, yesterday_count: u
 }
 
 fn derive_koi(days: &[ContributionDay], observed_on: NaiveDate) -> KoiDevelopment {
-    let snapshot_json = format!(
-        r#"{{
-  "schema_version": 3,
-  "account_id": 42,
-  "repositories": [
-    {{
-      "repository_id": 1,
-      "visibility": "public",
-      "is_fork": false,
-      "primary_language": "Rust"
-    }}
-  ],
-  "contribution_history": {{
-    "observed_on": "{observed_on}",
-    "days": {}
-  }},
-  "language_colors": {{
-    "Rust": "#dea584"
-  }}
-}}"#,
-        serde_json::to_string(days).unwrap()
-    );
-    let snapshot: AccountSnapshot = serde_json::from_str(&snapshot_json).unwrap();
+    let days_value = serde_json::to_value(days).unwrap();
+    let snapshot: AccountSnapshot = serde_json::from_value(serde_json::json!({
+        "schema_version": 3,
+        "account_id": 42,
+        "repositories": [
+            {
+                "repository_id": 1,
+                "visibility": "public",
+                "is_fork": false,
+                "primary_language": "Rust"
+            }
+        ],
+        "contribution_history": {
+            "observed_on": observed_on.to_string(),
+            "days": days_value
+        },
+        "language_colors": {
+            "Rust": "#dea584"
+        }
+    }))
+    .unwrap();
     derive_koi_development(&snapshot).unwrap()
 }

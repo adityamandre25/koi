@@ -678,33 +678,81 @@ fn calculate_anatomy(total_contributions: u64) -> KoiAnatomy {
     let legendary = calculate_legendary_transformation(total_contributions);
 
     let body_length_pixels = if total_contributions <= JUVENILE_TO_ADULT_MILESTONE {
-        interpolate(MIN_BODY_LENGTH_PIXELS, JUVENILE_ADULT_LENGTH_PIXELS, juvenile_to_adult)
+        interpolate(
+            MIN_BODY_LENGTH_PIXELS,
+            JUVENILE_ADULT_LENGTH_PIXELS,
+            juvenile_to_adult,
+        )
     } else if total_contributions <= DEVELOPED_FINS_MILESTONE {
-        interpolate(JUVENILE_ADULT_LENGTH_PIXELS, DEVELOPED_BODY_LENGTH_PIXELS, developed_fins)
+        interpolate(
+            JUVENILE_ADULT_LENGTH_PIXELS,
+            DEVELOPED_BODY_LENGTH_PIXELS,
+            developed_fins,
+        )
     } else if total_contributions <= MATURE_SHOW_MILESTONE {
-        interpolate(DEVELOPED_BODY_LENGTH_PIXELS, MATURE_BODY_LENGTH_PIXELS, veil_tail)
+        interpolate(
+            DEVELOPED_BODY_LENGTH_PIXELS,
+            MATURE_BODY_LENGTH_PIXELS,
+            veil_tail,
+        )
     } else {
-        interpolate(MATURE_BODY_LENGTH_PIXELS, LEGENDARY_BODY_LENGTH_PIXELS, legendary)
+        interpolate(
+            MATURE_BODY_LENGTH_PIXELS,
+            LEGENDARY_BODY_LENGTH_PIXELS,
+            legendary,
+        )
     };
 
     let body_width_fraction = if total_contributions <= JUVENILE_TO_ADULT_MILESTONE {
-        interpolate(YOUNG_BODY_WIDTH_FRACTION, ADULT_BODY_WIDTH_FRACTION, juvenile_to_adult)
+        interpolate(
+            YOUNG_BODY_WIDTH_FRACTION,
+            ADULT_BODY_WIDTH_FRACTION,
+            juvenile_to_adult,
+        )
     } else if total_contributions <= DEVELOPED_FINS_MILESTONE {
-        interpolate(ADULT_BODY_WIDTH_FRACTION, DEVELOPED_BODY_WIDTH_FRACTION, developed_fins)
+        interpolate(
+            ADULT_BODY_WIDTH_FRACTION,
+            DEVELOPED_BODY_WIDTH_FRACTION,
+            developed_fins,
+        )
     } else if total_contributions <= MATURE_SHOW_MILESTONE {
-        interpolate(DEVELOPED_BODY_WIDTH_FRACTION, MATURE_BODY_WIDTH_FRACTION, veil_tail)
+        interpolate(
+            DEVELOPED_BODY_WIDTH_FRACTION,
+            MATURE_BODY_WIDTH_FRACTION,
+            veil_tail,
+        )
     } else {
-        interpolate(MATURE_BODY_WIDTH_FRACTION, LEGENDARY_BODY_WIDTH_FRACTION, legendary)
+        interpolate(
+            MATURE_BODY_WIDTH_FRACTION,
+            LEGENDARY_BODY_WIDTH_FRACTION,
+            legendary,
+        )
     };
 
     let fin_length_multiplier = if total_contributions <= JUVENILE_TO_ADULT_MILESTONE {
-        interpolate(YOUNG_FIN_LENGTH_MULTIPLIER, ADULT_FIN_LENGTH_MULTIPLIER, juvenile_to_adult)
+        interpolate(
+            YOUNG_FIN_LENGTH_MULTIPLIER,
+            ADULT_FIN_LENGTH_MULTIPLIER,
+            juvenile_to_adult,
+        )
     } else if total_contributions <= DEVELOPED_FINS_MILESTONE {
-        interpolate(ADULT_FIN_LENGTH_MULTIPLIER, DEVELOPED_FIN_LENGTH_MULTIPLIER, developed_fins)
+        interpolate(
+            ADULT_FIN_LENGTH_MULTIPLIER,
+            DEVELOPED_FIN_LENGTH_MULTIPLIER,
+            developed_fins,
+        )
     } else if total_contributions <= MATURE_SHOW_MILESTONE {
-        interpolate(DEVELOPED_FIN_LENGTH_MULTIPLIER, VEIL_TAIL_FIN_LENGTH_MULTIPLIER, veil_tail)
+        interpolate(
+            DEVELOPED_FIN_LENGTH_MULTIPLIER,
+            VEIL_TAIL_FIN_LENGTH_MULTIPLIER,
+            veil_tail,
+        )
     } else {
-        interpolate(VEIL_TAIL_FIN_LENGTH_MULTIPLIER, LEGENDARY_FIN_LENGTH_MULTIPLIER, legendary)
+        interpolate(
+            VEIL_TAIL_FIN_LENGTH_MULTIPLIER,
+            LEGENDARY_FIN_LENGTH_MULTIPLIER,
+            legendary,
+        )
     };
 
     KoiAnatomy {
