@@ -47,18 +47,20 @@ runs:
         install_dir="$RUNNER_TEMP/git-koi"
         mkdir -p "$install_dir"
         if ! gh release download "v$version" --repo "$repository" --dir "$install_dir" \
-            --pattern "$archive" --pattern "$archive.sha256"; then
-          echo "release v$version has no asset $archive; reference the Action at a release tag" >&2
-          exit 1
-        fi
-        cd "$install_dir"
-        if command -v sha256sum > /dev/null; then
-          sha256sum -c "$archive.sha256"
+            --pattern "$archive" --pattern "$archive.sha256" 2>/dev/null; then
+          echo "No prebuilt release found for $repository, building git-koi from source..."
+          cargo build --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml"
+          echo "$GITHUB_ACTION_PATH/target/release" >> "$GITHUB_PATH"
         else
-          shasum -a 256 -c "$archive.sha256"
+          cd "$install_dir"
+          if command -v sha256sum > /dev/null; then
+            sha256sum -c "$archive.sha256"
+          else
+            shasum -a 256 -c "$archive.sha256"
+          fi
+          tar -xzf "$archive"
+          echo "$install_dir/git-koi-$version-$target" >> "$GITHUB_PATH"
         fi
-        tar -xzf "$archive"
-        echo "$install_dir/git-koi-$version-$target" >> "$GITHUB_PATH"
     - name: Collect the account snapshot
       shell: bash
       env:
