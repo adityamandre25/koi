@@ -250,52 +250,58 @@ pub fn calculate_legendary_transformation(total_contributions: u64) -> f64 {
     )
 }
 
-/// Count active days Monday through Saturday only in the observation week (0..=6).
-/// Resets every Monday at 00:00 UTC. Sunday does not count.
+/// Count active days in the current unbroken streak (Monday through Saturday).
+/// - Resets when the streak breaks (i.e. 0 commits on a Monday–Saturday day).
+/// - Does NOT reset on Monday / week boundaries; persists across weeks.
+/// - Sunday is completely ignored: it neither increments nor breaks the streak.
+pub fn calculate_streak_active_days(
+    daily_counts: &BTreeMap<NaiveDate, u32>,
+    observed_on: NaiveDate,
+) -> u8 {
+    let mut current_streak: u8 = 0;
+    let mut date = observed_on;
+
+    // If observed_on is Sunday, Sunday is completely ignored: it neither increments nor breaks the streak.
+    // Evaluate the streak as of the latest Saturday.
+    if date.weekday() == Weekday::Sun {
+        let Some(prev) = date.pred_opt() else { return 0; };
+        date = prev;
+    }
+
+    // Walk backwards day by day from date
+    while let Some(&count) = daily_counts.get(&date) {
+        if date.weekday() == Weekday::Sun {
+            // Sunday is completely ignored: neither increments nor breaks streak.
+        } else if count > 0 {
+            current_streak = current_streak.saturating_add(1);
+        } else {
+            // 0 commits on a Monday–Saturday day: streak broke!
+            break;
+        }
+
+        let Some(prev_date) = date.pred_opt() else { break; };
+        date = prev_date;
+    }
+
+    current_streak
+}
+
+/// Calculate marking visibility active streak days (Monday through Saturday).
+/// Resets when the streak breaks (0 commits on a Monday-Saturday day), does NOT reset every week.
 pub fn calculate_weekly_active_days(
     daily_counts: &BTreeMap<NaiveDate, u32>,
     observed_on: NaiveDate,
 ) -> u8 {
-    let days_since_monday = u64::from(observed_on.weekday().num_days_from_monday());
-    let monday = observed_on
-        .checked_sub_days(Days::new(days_since_monday))
-        .expect("valid calendar date");
-    let mut active_days: u8 = 0;
-    for (&date, &count) in daily_counts.range(monday..=observed_on) {
-        if date.weekday() != Weekday::Sun && count > 0 {
-            active_days += 1;
-        }
-    }
-    active_days.min(6)
+    calculate_streak_active_days(daily_counts, observed_on)
 }
 
-/// Count consecutive active days Monday through Saturday in the observation week (0..=6).
-/// Missing a Monday–Saturday day breaks the streak.
-/// Sunday is completely ignored: it neither increments nor breaks the streak.
-/// A fresh weekly streak starts on Monday.
+/// Calculate marking sharpness consecutive active days (Monday through Saturday).
+/// Resets when the streak breaks (0 commits on a Monday-Saturday day), does NOT reset every week.
 pub fn calculate_consecutive_active_days(
     daily_counts: &BTreeMap<NaiveDate, u32>,
     observed_on: NaiveDate,
 ) -> u8 {
-    let days_since_monday = u64::from(observed_on.weekday().num_days_from_monday());
-    let monday = observed_on
-        .checked_sub_days(Days::new(days_since_monday))
-        .expect("valid calendar date");
-    let mut current_streak: u8 = 0;
-    let mut date = monday;
-    while date <= observed_on {
-        if date.weekday() != Weekday::Sun {
-            let count = daily_counts.get(&date).copied().unwrap_or(0);
-            if count > 0 {
-                current_streak += 1;
-            } else {
-                current_streak = 0;
-            }
-        }
-        let Some(next_date) = date.succ_opt() else { break };
-        date = next_date;
-    }
-    current_streak.min(6)
+    calculate_streak_active_days(daily_counts, observed_on)
 }
 
 /// Why a snapshot produced no development. Each message names the repair.

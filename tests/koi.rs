@@ -332,33 +332,15 @@ fn lifetime_growth_milestones_and_smooth_logarithmic_interpolation() {
 }
 
 #[test]
-fn weekly_activity_counts_monday_to_saturday_only_and_resets_on_monday() {
-    // 2026-11-02 was a Monday, 2026-11-08 was a Sunday
-    // Mon: 1, Tue: 1, Wed: 0, Thu: 1, Fri: 1, Sat: 1, Sun: 10 (Sunday shouldn't count!)
+fn marking_streak_breaks_on_zero_commit_day_and_persists_across_weeks() {
+    // 2026-11-02 was Monday.
+    // Mon: 1, Tue: 1, Wed: 0 (missed! streak breaks), Thu: 1, Fri: 1, Sat: 1, Sun: 10 (Sunday ignored)
     let daily_counts = [1, 1, 0, 1, 1, 1, 10];
     let snapshot = build_snapshot_with_start_date("2026-11-02", &daily_counts);
     let dev = derive_koi_development(&snapshot).unwrap();
 
-    // Monday through Saturday has 5 active days (Mon, Tue, Thu, Fri, Sat).
-    // Sunday has 10 contributions but must NOT count.
-    assert_eq!(dev.weekly_active_days, 5);
-
-    // When Monday comes next week, week resets
-    let next_monday_counts = [1, 1, 0, 1, 1, 1, 10, 0];
-    let next_snapshot = build_snapshot_with_start_date("2026-11-02", &next_monday_counts);
-    let next_dev = derive_koi_development(&next_snapshot).unwrap();
-    assert_eq!(next_dev.weekly_active_days, 0); // fresh week starting Monday with 0 contributions
-}
-
-#[test]
-fn streak_breaks_on_missed_day_and_completely_ignores_sunday() {
-    // Mon: 1, Tue: 1, Wed: 0 (missed!), Thu: 1, Fri: 1, Sat: 1, Sun: 0
-    let daily_counts = [1, 1, 0, 1, 1, 1, 0];
-    let snapshot = build_snapshot_with_start_date("2026-11-02", &daily_counts);
-    let dev = derive_koi_development(&snapshot).unwrap();
-
-    // Streak broke on Wednesday (0). Thu, Fri, Sat are 3 active days.
-    // Sunday is completely ignored (it neither increments nor breaks the streak).
+    // Thu, Fri, Sat are 3 active streak days. Sunday does not count.
+    assert_eq!(dev.weekly_active_days, 3);
     assert_eq!(dev.consecutive_active_days, 3);
 
     // Full 6-day Mon-Sat streak
@@ -366,18 +348,28 @@ fn streak_breaks_on_missed_day_and_completely_ignores_sunday() {
     let full_snapshot = build_snapshot_with_start_date("2026-11-02", &full_streak);
     let full_dev = derive_koi_development(&full_snapshot).unwrap();
     assert_eq!(full_dev.consecutive_active_days, 6);
+    assert_eq!(full_dev.weekly_active_days, 6);
 
     // Sunday active also does not increment streak beyond Saturday
     let full_with_sunday = [1, 1, 1, 1, 1, 1, 10];
     let full_sun_snapshot = build_snapshot_with_start_date("2026-11-02", &full_with_sunday);
     let full_sun_dev = derive_koi_development(&full_sun_snapshot).unwrap();
     assert_eq!(full_sun_dev.consecutive_active_days, 6);
+    assert_eq!(full_sun_dev.weekly_active_days, 6);
 
-    // Next Monday starts fresh
-    let fresh_monday = [1, 1, 1, 1, 1, 1, 10, 1];
-    let fresh_snapshot = build_snapshot_with_start_date("2026-11-02", &fresh_monday);
-    let fresh_dev = derive_koi_development(&fresh_snapshot).unwrap();
-    assert_eq!(fresh_dev.consecutive_active_days, 1);
+    // Next Monday has 1 commit: streak does NOT reset every week, it persists across weeks!
+    let next_monday_active = [1, 1, 1, 1, 1, 1, 10, 1];
+    let next_active_snapshot = build_snapshot_with_start_date("2026-11-02", &next_monday_active);
+    let next_active_dev = derive_koi_development(&next_active_snapshot).unwrap();
+    assert_eq!(next_active_dev.consecutive_active_days, 7);
+    assert_eq!(next_active_dev.weekly_active_days, 7);
+
+    // When 0 commits occur on a Mon-Sat day after days of commits, streak breaks and resets to 0!
+    let zero_commit_break = [1, 1, 1, 1, 1, 1, 10, 0];
+    let break_snapshot = build_snapshot_with_start_date("2026-11-02", &zero_commit_break);
+    let break_dev = derive_koi_development(&break_snapshot).unwrap();
+    assert_eq!(break_dev.consecutive_active_days, 0);
+    assert_eq!(break_dev.weekly_active_days, 0);
 }
 
 #[test]
@@ -414,6 +406,8 @@ fn build_snapshot_with_start_date(start_date_str: &str, daily_counts: &[u32]) ->
         days: contribution_days,
     });
     account_snapshot.language_colors = Some(BTreeMap::from([
+        ("C++".to_owned(), Some(LanguageColor([0xf3, 0x4b, 0x7d]))),
+        ("Python".to_owned(), Some(LanguageColor([0x35, 0x72, 0xa5]))),
         ("Rust".to_owned(), Some(LanguageColor([0xde, 0xa5, 0x84]))),
     ]));
     account_snapshot

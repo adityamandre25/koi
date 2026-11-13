@@ -37,32 +37,31 @@ All six core independent systems, crisp vector SVG generation, seamless swimming
 - **Lifetime Historical Querying**:
   - Queries GitHub GraphQL API `contributionsCollection` year-by-year from account creation date (`createdAt`) to `observed_on`.
 
-### System 2: Weekly Activity → Marking Visibility
-- **Active Day Counting (Mon–Sat Only)**:
-  - Scans daily contribution counts from Monday through Saturday within the observation week.
-  - Sunday contributions are excluded.
-  - Week resets every Monday at 00:00 UTC.
+### System 2: Active Streak → Marking Visibility
+- **Streak-Driven Visibility**:
+  - Tracks the continuous unbroken active streak of Monday through Saturday contributions.
+  - Sunday contributions are excluded (neither increments nor breaks the streak).
+  - Resets to 0 only when the streak breaks (i.e. 0 commits on a Monday–Saturday day after days of commits); does NOT reset every week on Monday.
 - **Marking Visibility Thresholds**:
   - `0 days`: Very subtle markings (`0.20`).
   - `1–2 days`: Light markings (`0.38 – 0.48`).
   - `3–4 days`: Clear markings (`0.68 – 0.78`).
   - `5 days`: Strong markings (`0.90`).
-  - `6 days`: Maximum visibility (`1.00`).
+  - `6+ days`: Maximum visibility (`1.00`).
 - **Rendering Effect**:
   - Modulates marking patch coverage and visibility dithering against the ground body.
 
 ### System 3: Consecutive Active Days → Marking Sharpness
 - **Streak Calculation**:
-  - Measures uninterrupted consecutive active days leading up to the observation day within the current week (starting Monday).
-  - Missing any Monday–Saturday day breaks the streak.
+  - Measures uninterrupted consecutive active days (Mon–Sat) in the current streak.
+  - Missing any Monday–Saturday day breaks the streak and resets to 0.
   - Sunday is completely ignored: it neither increments nor breaks the streak.
-  - A fresh weekly streak starts on Monday.
-  - Completely independent of weekly marking visibility.
+  - Does NOT reset every week on Monday; persists across weeks as long as the streak continues unbroken.
 - **Marking Sharpness Thresholds**:
   - `0`: Soft markings (`0.10`).
   - `2`: Clearer markings (`0.50`).
   - `4`: Sharp markings (`0.80`).
-  - `6`: Maximum detail (`1.00`).
+  - `6+`: Maximum detail (`1.00`).
 - **Rendering Effect**:
   - Modulates transition edge softness: lower values yield soft, blended dithered transitions at pigment margins; higher values yield razor-sharp crisp pigment borders.
 
@@ -154,3 +153,4 @@ All 78 tests across 10 test suites passed cleanly with 0 failures:
 1. **Commit and Push**:
    - Commit all changes to Git.
    - Push to `origin main` (`https://github.com/adityamandre25/koi`).
+
